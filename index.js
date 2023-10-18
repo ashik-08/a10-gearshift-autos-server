@@ -27,13 +27,36 @@ async function run() {
     await client.connect();
 
     // Connect to the "gearShift-autos" database and access its "brand" collection
-    const brandCollection = client.db("gearShift-autos").collection("brand");
+    const database = client.db("gearShift-autos");
+    const allBrandCollection = database.collection("brand");
 
     // brand details collection
+    // get brandImage & name on homepage
     app.get("/brand", async (req, res) => {
-      const cursor = brandCollection.find();
+      const cursor = allBrandCollection.find();
       const result = await cursor.toArray();
       res.send(result);
+    });
+
+    // add new car to the db specified on brandName from addCar page
+    app.post("/brand/:brandName", async (req, res) => {
+      const brandName = req.params.brandName;
+      const newCar = req.body;
+      console.log(brandName, newCar);
+
+      const collections = await database.listCollections().toArray();
+      const collectionName = collections.find(
+        (collection) => collection.name === brandName
+      );
+      if (collectionName) {
+        const brandNameCollection = collectionName.name;
+        const result = await database
+          .collection(brandNameCollection)
+          .insertOne(newCar);
+        res.send(result);
+      } else {
+        res.send(`No such brand ${brandName}`);
+      }
     });
 
     // Send a ping to confirm a successful connection
