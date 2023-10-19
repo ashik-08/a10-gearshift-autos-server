@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -46,10 +46,14 @@ async function run() {
       const collectionName = collections.find(
         (collection) => collection.name === brandName
       );
-      const brandNameCollection = collectionName.name;
-      const cursor = database.collection(brandNameCollection).find();
-      const result = await cursor.toArray();
-      res.send(result);
+      if (collectionName) {
+        const brandNameCollection = collectionName.name;
+        const cursor = database.collection(brandNameCollection).find();
+        const result = await cursor.toArray();
+        res.send(result);
+      } else {
+        res.send({ message: "No such Brand Found!" });
+      }
     });
 
     // add new car to the db specified on brandName from addCar page
