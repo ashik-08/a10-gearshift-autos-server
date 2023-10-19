@@ -29,6 +29,7 @@ async function run() {
     // Connect to the "gearShift-autos" database and access its "brand" collection
     const database = client.db("gearShift-autos");
     const allBrandCollection = database.collection("brand");
+    const cartCollection = database.collection("cart");
 
     // brand details collection
     // get brandImage & name on homepage
@@ -120,6 +121,23 @@ async function run() {
       // collection not found
       else {
         res.send(`No such brand ${brandName}`);
+      }
+    });
+
+    // add items to cart collection from CarDetailsInfoPage
+    app.post("/cart", async (req, res) => {
+      const cart = req.body;
+      const query = await cartCollection.find().toArray();
+      // check if it is already added in the DB
+      const found = query.find(
+        (search) => search.name === cart.name && search._id === cart._id
+      );
+      if (found) {
+        res.send("Already exists in DB");
+      } else {
+        // insert a new cart into the collection
+        const result = await cartCollection.insertOne(cart);
+        res.send(result);
       }
     });
 
