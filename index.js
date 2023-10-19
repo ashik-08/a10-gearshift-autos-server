@@ -38,6 +38,20 @@ async function run() {
       res.send(result);
     });
 
+    // get brandProducts by brandName
+    app.get("/brand/:brandName", async (req, res) => {
+      const brandName = req.params.brandName;
+      // find the collection based on brandName
+      const collections = await database.listCollections().toArray();
+      const collectionName = collections.find(
+        (collection) => collection.name === brandName
+      );
+      const brandNameCollection = collectionName.name;
+      const cursor = database.collection(brandNameCollection).find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // add new car to the db specified on brandName from addCar page
     app.post("/brand/:brandName", async (req, res) => {
       const brandName = req.params.brandName;
