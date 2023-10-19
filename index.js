@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -38,7 +38,7 @@ async function run() {
       res.send(result);
     });
 
-    // get brandProducts by brandName
+    // get brandProducts(Cars) by brandName
     app.get("/brand/:brandName", async (req, res) => {
       const brandName = req.params.brandName;
       // find the collection based on brandName
@@ -54,6 +54,32 @@ async function run() {
       } else {
         res.send({ message: "No such Brand Found!" });
       }
+    });
+
+    // get car details by brandName & id
+    app.get("/brand/:brandName/:id", async (req, res) => {
+      const brandName = req.params.brandName;
+      const id = req.params.id;
+
+      // find the collection based on brandName
+      const collections = await database.listCollections().toArray();
+      const collectionName = collections.find(
+        (collection) => collection.name === brandName
+      );
+
+      // when collection found
+      const brandNameCollection = collectionName.name;
+
+      // make a query using id
+      const query = { _id: new ObjectId(id) };
+
+      // search to find the data in the collection
+      // get the result
+      const result = await database
+        .collection(brandNameCollection)
+        .findOne(query);
+
+      res.send(result);
     });
 
     // add new car to the db specified on brandName from addCar page
