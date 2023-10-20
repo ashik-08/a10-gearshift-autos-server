@@ -164,6 +164,28 @@ async function run() {
       }
     });
 
+    // delete carDetails from carCollection using brandName & id
+    app.delete("/brand/:brandName/:id", async (req, res) => {
+      const id = req.params.id;
+      const brandName = req.params.brandName;
+      // find the collection based on brandName
+      const collections = await database.listCollections().toArray();
+      const collectionName = collections.find(
+        (collection) => collection.name === brandName
+      );
+      // collection found
+      if (collectionName) {
+        const brandNameCollection = collectionName.name;
+        const query = { _id: new ObjectId(id) };
+        const result = await database
+          .collection(brandNameCollection)
+          .deleteOne(query);
+        res.send(result);
+      } else {
+        res.send("Error occurred");
+      }
+    });
+
     // cart items collection
     // get cart items on My Cart page
     app.get("/cart", async (req, res) => {
@@ -195,7 +217,7 @@ async function run() {
       // as the id is in string type so can't directly query
       // first we have to find the specified item
       const query = await cartCollection.find().toArray();
-      const found = query.find((search) => search._id == id);
+      const found = query.find((search) => search._id === id);
       const result = await cartCollection.deleteOne(found);
       res.send(result);
     });
