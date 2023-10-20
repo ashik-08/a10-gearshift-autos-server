@@ -39,6 +39,7 @@ async function run() {
       res.send(result);
     });
 
+    // carDetails collection by brandName
     // get brandProducts(Cars) by brandName
     app.get("/brand/:brandName", async (req, res) => {
       const brandName = req.params.brandName;
@@ -124,6 +125,14 @@ async function run() {
       }
     });
 
+    // cart items collection
+    // get cart items on My Cart page
+    app.get("/cart", async (req, res) => {
+      const cursor = cartCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // add items to cart collection from CarDetailsInfoPage
     app.post("/cart", async (req, res) => {
       const cart = req.body;
@@ -135,7 +144,7 @@ async function run() {
       if (found) {
         res.send("Already exists in DB");
       } else {
-        // insert a new cart into the collection
+        // insert a new item into the cart collection
         const result = await cartCollection.insertOne(cart);
         res.send(result);
       }
