@@ -150,6 +150,17 @@ async function run() {
       }
     });
 
+    // delete items from cart collection from MyCartPage
+    app.delete("/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      // as the id is in string type so can't directly query
+      // first we have to find the specified item
+      const query = await cartCollection.find().toArray();
+      const found = query.find((search) => search._id == id);
+      const result = await cartCollection.deleteOne(found);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
