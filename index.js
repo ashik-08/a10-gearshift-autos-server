@@ -125,6 +125,45 @@ async function run() {
       }
     });
 
+    // update car details from UpdateCarPage
+    app.put("/brand/:brandName/:id", async (req, res) => {
+      const id = req.params.id;
+      const brandName = req.params.brandName;
+      const details = req.body;
+
+      // find the collection based on brandName
+      const collections = await database.listCollections().toArray();
+      const collectionName = collections.find(
+        (collection) => collection.name === brandName
+      );
+
+      // collection found
+      if (collectionName) {
+        const brandNameCollection = collectionName.name;
+        const filter = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const updatedDetails = {
+          $set: {
+            name: details.name,
+            brandName: details.brandName,
+            type: details.type,
+            price: details.price,
+            image: details.image,
+            rating: details.rating,
+            description: details.description,
+          },
+        };
+        const result = await database
+          .collection(brandNameCollection)
+          .updateOne(filter, updatedDetails, options);
+        res.send(result);
+      }
+      // collection not found
+      else {
+        res.send("No such brand");
+      }
+    });
+
     // cart items collection
     // get cart items on My Cart page
     app.get("/cart", async (req, res) => {
