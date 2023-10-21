@@ -70,25 +70,28 @@ async function run() {
       );
 
       // when collection found
-      const brandNameCollection = collectionName.name;
+      if (collectionName) {
+        const brandNameCollection = collectionName.name;
 
-      // make a query using id
-      const query = { _id: new ObjectId(id) };
+        // make a query using id
+        const query = { _id: new ObjectId(id) };
 
-      // search to find the data in the collection
-      // get the result
-      const result = await database
-        .collection(brandNameCollection)
-        .findOne(query);
-
-      res.send(result);
+        // search to find the data in the collection
+        // get the result
+        const result = await database
+          .collection(brandNameCollection)
+          .findOne(query);
+        res.send(result);
+      } else {
+        res.send({ message: "Brand or Car ID is incorrect" });
+      }
     });
 
     // add new car to the db specified on brandName from addCar page
     app.post("/brand/:brandName", async (req, res) => {
       const brandName = req.params.brandName;
       const newCar = req.body;
-      console.log(brandName, newCar);
+      // console.log(brandName, newCar);
 
       // find the collection based on brandName
       const collections = await database.listCollections().toArray();
@@ -194,19 +197,26 @@ async function run() {
       res.send(result);
     });
 
-    // add items to cart collection from CarDetailsInfoPage
-    app.post("/cart", async (req, res) => {
-      const cart = req.body;
-      const query = await cartCollection.find().toArray();
-      // check if it is already added in the DB
-      const found = query.find(
-        (search) => search.name === cart.name && search._id === cart._id
-      );
+    // add items to cart collection from CarDetailsInfoPage using userEmail as unique identifier
+    app.post("/cart/:userEmail", async (req, res) => {
+      const userEmail = req.params.userEmail;
+      const cartItem = req.body;
+
+      // Add the userEmail to the cartItem document
+      cartItem.userEmail = userEmail;
+
+      const found = await cartCollection.findOne({
+        name: cartItem.name,
+        userEmail: userEmail,
+      });
       if (found) {
         res.send("Already exists in DB");
       } else {
-        // insert a new item into the cart collection
-        const result = await cartCollection.insertOne(cart);
+        // Manually generate a customId
+        cartItem.prevId = cartItem._id;
+        // Remove _id property if it's present in the request body
+        delete cartItem._id;
+        const result = await cartCollection.insertOne(cartItem);
         res.send(result);
       }
     });
